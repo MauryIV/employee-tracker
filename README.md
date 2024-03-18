@@ -1,6 +1,3 @@
-WHEN I choose to view all departments
-THEN I am presented with a formatted table showing department names and department ids
-<!-- after choosing view all departments, formatted table with dept names and dept ids -->
 WHEN I choose to view all roles
 THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 <!-- after choosing view all roles, formatted table with job title, role id, the department that role belongs to, and salary for role. -->

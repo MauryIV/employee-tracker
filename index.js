@@ -1,16 +1,5 @@
-const Table = require('cli-table');
 const inquirer = require("inquirer");
-const { Pool } = require('pg');
-
-const pool = new Pool (
-  {
-    user: 'postgres',
-    password: '4444',
-    host: 'localhost',
-    database: 'employee_db'
-  },
-  console.log('You have entered the employee database.')
-);
+const { departments, roles, employees, addDepartment, addRole, addEmployee, updateEmployee } = require('./assets/db-functions');
 
 const userPrompt = [
   {
@@ -21,29 +10,24 @@ const userPrompt = [
   }
 ];
 
-function departments() {
-  const getSql = 'SELECT department.dept_name AS "Department", id AS "Department ID" FROM department ORDER BY department.dept_name';
-  pool.query(getSql, (err, result) => {
-    const table = new Table({
-      head: ['Department', 'Department ID']
-    });
-    if (err) {
-      console.error('Having this issue: ', err);
-    } else {
-      result.rows.forEach(row => {
-        table.push([row['Department'], row['Department ID']]);
-      });
-      console.log(table.toString());
-    }
-  });
-}
-
 function init() {
   inquirer.prompt(userPrompt)
   .then((userInput) => {
     if (userInput.userChoice === "View all departments") {
       departments();
-    }
+    } else if (userInput.userChoice === "View all roles") {
+      roles();
+    } else if (userInput.userChoice === "View all employees") {
+      employees();
+    } else if (userInput.userChoice === "Add a department") {
+      addDepartment();
+    } else if (userInput.userChoice === "Add a role") {
+      addRole();
+    } else if (userInput.userChoice === "Add an employee") {
+      addEmployee();
+    } else if (userInput.userChoice === "Update an employee role") {
+      updateEmployee();
+    } else ('Somehow you chose something not on the list. Please try again')
   });
 };
 
