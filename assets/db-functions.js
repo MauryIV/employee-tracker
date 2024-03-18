@@ -61,21 +61,22 @@ employee.last_name AS "Last Name",
 department.dept_name AS "Department", 
 role.title AS "Title", 
 role.salary AS "Salary", 
-employee.manager_id AS "Manager ID" 
+CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name" 
 FROM employee 
 LEFT JOIN role ON role.id = employee.role_id 
 LEFT JOIN department ON department.id = role.dept_id 
+LEFT JOIN employee manager ON manager.id = employee.manager_id 
 ORDER BY department.dept_name ASC, employee.last_name ASC`;
   pool.query(getSql, (err, result) => {
     const table = new Table({
-      head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager ID']
+      head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager Name']
     });
     if (err) {
       console.error('Having this issue: ', err);
     } else {
       result.rows.forEach(row => {
-        const managerID = row['Manager ID'] ? row['Manager ID'] : '';
-        table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerID]);
+        const managerName = row['Manager Name'] ? row['Manager Name'] : '';
+        table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
       });
       console.log(table.toString());
     }
