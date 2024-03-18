@@ -4,7 +4,7 @@ const { departments, roles, employees, addDepartment, addRole, addEmployee, upda
 const userPrompt = [
   {
     type: "list",
-    message: "",
+    message: 'Welcome to the Employee Tracker! Please choose from the following to access and edit the database.',
     name: "userChoice",
     choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Update an employee role"]
   }
@@ -13,21 +13,32 @@ const userPrompt = [
 function init() {
   inquirer.prompt(userPrompt)
   .then((userInput) => {
-    if (userInput.userChoice === "View all departments") {
-      departments();
-    } else if (userInput.userChoice === "View all roles") {
-      roles();
-    } else if (userInput.userChoice === "View all employees") {
-      employees();
-    } else if (userInput.userChoice === "Add a department") {
-      addDepartment();
-    } else if (userInput.userChoice === "Add a role") {
-      addRole();
-    } else if (userInput.userChoice === "Add an employee") {
-      addEmployee();
-    } else if (userInput.userChoice === "Update an employee role") {
-      updateEmployee();
-    } else ('Somehow you chose something not on the list. Please try again')
+    switch (userInput.userChoice) {
+      case "View all departments":
+        departments();
+        init();
+      case "View all roles":
+        roles();
+        init();
+      case "View all employees":
+        employees();
+        init();
+      case "Add a department":
+        addDepartment();
+        init();
+      case "Add a role":
+        addRole();
+        init(); 
+      case "Add an employee":
+        addEmployee();
+        init();
+      case "Update an employee role":
+        updateEmployee();
+        init();
+      default:
+        console.log('Somehow you chose something not on the list. Please try again');
+        init();
+    }
   });
 };
 

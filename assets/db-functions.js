@@ -1,3 +1,4 @@
+const inquirer = require("inquirer");
 const Table = require('cli-table');
 const { Pool } = require('pg');
 
@@ -84,7 +85,24 @@ ORDER BY department.dept_name ASC, employee.last_name ASC`;
 };
 
 function addDepartment() {
-
+  const addDept = [
+    {
+      type: "input",
+      message: "Please enter the name of the new department.",
+      name: "deptName"
+    }
+  ];
+  inquirer.prompt(addDept)
+  .then((newDept) => {
+    const editSql = `INSERT INTO department (dept_name) VALUES ('${newDept.deptName}')`
+    pool.query(editSql, (err) => {
+      if (err) {
+        console.error('Having this issue: ', err);
+      } else {
+        console.log('New department added successfully!');
+      }
+    });
+  });
 };
 
 function addRole() {
