@@ -107,7 +107,7 @@ function addDepartment() {
 };
 
 function addRole() {
-  const getSql = `SELECT department.dept_name AS "Department", id
+  const getSql = `SELECT department.dept_name AS "Department", department.id
   FROM department 
   ORDER BY dept_name`;
   pool.query(getSql, (err, result) => {
@@ -137,8 +137,10 @@ function addRole() {
     inquirer.prompt(addRole)
     .then((newRole) => {
       console.log(result.rows)
+      console.log(result.rows.find(row => row.Department))
+      console.log(newRole.roleDept)
       const chosenDept = result.rows.find(row => row.Department === newRole.roleDept);
-      const editSql = `INSERT INTO role (title, salary, dept_id) VALUES ('${newRole.roleName}', ${newRole.roleSalary}, '${chosenDept.id}')`;
+      const editSql = `INSERT INTO role (title, salary, dept_id) VALUES ('${newRole.roleName}', ${newRole.roleSalary}, ${chosenDept.id})`;
       pool.query(editSql, (err) => {
         if (err) {
           console.error('Having this issue: ', err);
@@ -151,7 +153,88 @@ function addRole() {
 };
 
 function addEmployee() {
+  const getSql = `SELECT role.title AS "Title", role.id FROM role ORDER BY title`;
+  pool.query(getSql, (err, result) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    const allTitles = result.rows.map(row => row.Title);
+    const addEmployee = [
+      {
+        type: "input",
+        message: "Please enter the first name of the new employee.",
+        name: "firstName"
+      },
+      {
+        type: "input",
+        message: "Please enter the last name of the new employee.",
+        name: "lastName"
+      },
+      {
+        type: "list",
+        message: "Please choose the employee's title.",
+        name: "title",
+        choices: allTitles
+      },
+      {
+        type: "confirm",
+        message: "Does this person have a manager?",
+        name: "hasManager",
+        default: true
+      }
+    ];
+    inquirer.prompt(addEmployee)
+    .then((newEmployee) => {
+      const chosenRole = result.rows.find(row => row.Title === newEmployee.title);
+      if (newEmployee.hasManager) {
+        addManager(newEmployee, chosenRole);
+      } else {
+        const editSql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${newEmployee.firstName}', '${newEmployee.lastName}', ${chosenRole.id}, NULL)`;
+        pool.query(editSql, (err) => {
+          if (err) {
+            console.error('Having this issue: ', err);
+          } else {
+            console.log('New Employee added successfully!');
+          }
+        })
+      };
+    });
+  });
+};
 
+function addManager(newEmployee, chosenRole) {
+  const getSql = `SELECT employee.last_name AS "Last", employee.first_name AS "First", employee.id AS "ID"
+FROM employee ORDER BY last_name`;
+  pool.query(getSql, (err, result) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    result.rows.map(row => row.Title);
+    const allEmployees = result.rows.map(row => `${row.ID}: ${row["Last"]}, ${row["First"]}`)
+
+    const addManager = [
+      {
+        type: "list",
+        message: "Who is this person's manager?",
+        name: "managerId",
+        choices: allEmployees
+      }
+    ];
+    inquirer.prompt(addManager)
+    .then((managerTrue) => {
+      const chosenManager = result.rows.find(row => row.ID.toString() === managerTrue.managerId.split(':')[0]);
+      const editSql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${newEmployee.firstName}', '${newEmployee.lastName}', ${chosenRole.id}, ${chosenManager.ID})`;
+      pool.query(editSql, (err) => {
+        if (err) {
+          console.error('Having this issue: ', err);
+        } else {
+          console.log('New Employee added successfully!');
+        }
+      });
+    });
+  });
 };
 
 function updateEmployee() {
