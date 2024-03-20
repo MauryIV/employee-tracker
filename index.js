@@ -4,7 +4,7 @@ const { departments, roles, employees, addDepartment, addRole, addEmployee, upda
 const userPrompt = [
   {
     type: "list",
-    message: 'Welcome to the Employee Tracker! Please choose from the following to access and edit the database.',
+    message: '\nPlease choose from the following to access and edit the database.',
     name: "userChoice",
     choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Update an employee role"]
   }
@@ -16,30 +16,32 @@ function init() {
     switch (userInput.userChoice) {
       case "View all departments":
         departments();
-        init();
+        break;
       case "View all roles":
         roles();
-        init();
+        break;
       case "View all employees":
         employees();
-        init();
+        break;
       case "Add a department":
         addDepartment();
-        init();
+        break;
       case "Add a role":
         addRole();
-        init(); 
+        break; 
       case "Add an employee":
         addEmployee();
-        init();
+        break;
       case "Update an employee role":
         updateEmployee();
-        init();
+        break;
       default:
         console.log('Somehow you chose something not on the list. Please try again');
-        init();
     }
+    init();
   });
 };
 
 init();
+
+module.exports = { init }

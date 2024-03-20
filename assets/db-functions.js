@@ -24,6 +24,7 @@ ORDER BY department.dept_name`;
     if (err) {
       console.error('Having this issue: ', err);
     } else {
+      console.log('')
       result.rows.forEach(row => {
         table.push([row['Department'], row['Department ID']]);
       });
