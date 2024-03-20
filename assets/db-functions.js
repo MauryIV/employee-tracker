@@ -107,7 +107,47 @@ function addDepartment() {
 };
 
 function addRole() {
-
+  const getSql = `SELECT department.dept_name AS "Department", id
+  FROM department 
+  ORDER BY dept_name`;
+  pool.query(getSql, (err, result) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    const allDept = result.rows.map(row => row.Department);
+    const addRole = [
+      {
+        type: "input",
+        message: "Please enter the name of the new role.",
+        name: "roleName"
+      },
+      {
+        type: "input",
+        message: "Please enter the Salaray amount of the new role.",
+        name: "roleSalary"
+      },
+      {
+        type: "list",
+        message: "Please choose what department this role is for.",
+        name: "roleDept",
+        choices: allDept
+      }
+    ];
+    inquirer.prompt(addRole)
+    .then((newRole) => {
+      console.log(result.rows)
+      const chosenDept = result.rows.find(row => row.Department === newRole.roleDept);
+      const editSql = `INSERT INTO role (title, salary, dept_id) VALUES ('${newRole.roleName}', ${newRole.roleSalary}, '${chosenDept.id}')`;
+      pool.query(editSql, (err) => {
+        if (err) {
+          console.error('Having this issue: ', err);
+        } else {
+          console.log('New role added successfully!');
+        }
+      });
+    });
+  });
 };
 
 function addEmployee() {

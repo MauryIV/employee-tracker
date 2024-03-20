@@ -38,7 +38,6 @@ function init() {
       default:
         console.log('Somehow you chose something not on the list. Please try again');
     }
-    init();
   });
 };
 

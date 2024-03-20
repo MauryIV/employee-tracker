@@ -1,6 +1,3 @@
-WHEN I choose to add a role
-THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-<!-- chooses add role, adds a role name, salary, and department for that role based on user input -->
 WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 <!-- chooses add employee, adds an emplyees first, last name, role, and their manager based on user input -->
