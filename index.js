@@ -1,12 +1,12 @@
 const inquirer = require("inquirer");
-const { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee } = require('./assets/db-functions');
+const { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee, deleteDepartment, deleteRole, deleteEmployee } = require('./assets/db-functions');
 
 const userPrompt = [
   {
     type: "list",
     message: '\nPlease choose from the following to access and edit the database.',
     name: "userChoice",
-    choices: ["View all departments", "View all roles", "View all employees", "View all employees under specified manager", "View all employees in specified department", "Add a department", "Add a role", "Add an employee", "Update an employee role"]
+    choices: ["View all departments", "View all roles", "View all employees", "View all employees under specified manager", "View all employees in specified department", "Add a department", "Add a role", "Add an employee", "Update an employee role", "Delete a department", "Delete a role", "Delete an employee"]
   }
 ];
 
@@ -40,6 +40,15 @@ function init() {
         break;
       case "Update an employee role":
         updateEmployee();
+        break;
+      case "Delete a department":
+        deleteDepartment();
+        break;
+      case "Delete a role":
+        deleteRole();
+        break;
+      case "Delete an employee":
+        deleteEmployee();
         break;
       default:
         console.log('Somehow you chose something not on the list. Please try again');

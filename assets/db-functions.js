@@ -48,6 +48,7 @@ ORDER BY department.dept_name ASC, role.title ASC`;
     if (err) {
       console.error('Having this issue: ', err);
     } else {
+      console.log('')
       result.rows.forEach(row => {
         table.push([row['Title'], row['Title ID'], row['Department'], row['Salary']]);
       });
@@ -76,6 +77,7 @@ ORDER BY department.dept_name ASC, employee.last_name ASC`;
     if (err) {
       console.error('Having this issue: ', err);
     } else {
+      console.log('')
       result.rows.forEach(row => {
         const managerName = row['Manager Name'] ? row['Manager Name'] : '';
         table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
@@ -123,6 +125,7 @@ WHERE employee.id IN (SELECT DISTINCT manager_id FROM employee)`;
               console.error('Having this issue: ', err);
               return;
             }
+            console.log('')
             const table = new Table({
               head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary']
             });
@@ -174,6 +177,7 @@ function deptEmployees() {
       }
       inquirer.prompt(viewByDept)
         .then((chosenDept) => {
+          console.log('')
           const employeesInDept = emplResult.rows.filter(row => row.Department === chosenDept.deptName);
           const table = new Table({
             head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager Name']
@@ -350,6 +354,7 @@ function updateEmployee() {
   LEFT JOIN employee manager ON manager.id = employee.manager_id 
   ORDER BY employee.last_name ASC`;
   pool.query(getSql, (err, result) => {
+    console.log('')
     const table = new Table({
     head: ['ID', 'Last', 'First', 'Department', 'Title', 'Salary', 'Manager']
     });
@@ -406,8 +411,65 @@ function updateEmployee() {
             console.log('Employee not found');
           }
         });
-      }
-    });
-  };
+    }
+  });
+};
 
-module.exports = { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee }
+function deleteDepartment() {
+  departments();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of what department you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM department WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting department:', err);
+        return;
+      }
+      console.log('Department deleted successfully.');
+    });
+  });
+};
+
+function deleteRole() {
+  roles();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of the role you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM role WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting role:', err);
+        return;
+      }
+      console.log('Role deleted successfully.');
+    });
+  });
+};
+
+function deleteEmployee() {
+  employees();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of the employee you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM employee WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting employee:', err);
+        return;
+      }
+      console.log('Employee deleted successfully.');
+    });
+  });
+};
+
+module.exports = { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee, deleteDepartment, deleteRole, deleteEmployee }
