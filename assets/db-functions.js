@@ -85,6 +85,101 @@ ORDER BY department.dept_name ASC, employee.last_name ASC`;
   });
 };
 
+// function deptEmployees() {
+//   const getSql = `SELECT employee.id AS "Employee ID", 
+// employee.first_name AS "First Name", 
+// employee.last_name AS "Last Name", 
+// department.dept_name AS "Department", 
+// role.title AS "Title", 
+// role.salary AS "Salary", 
+// CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name" 
+// FROM employee 
+// LEFT JOIN role ON role.id = employee.role_id 
+// LEFT JOIN department ON department.id = role.dept_id 
+// LEFT JOIN employee manager ON manager.id = employee.manager_id 
+// ORDER BY department.dept_name ASC, employee.last_name ASC`;
+// const allDept = result.rows.map(row => row.Department);
+//   const viewByDept = [
+//     {
+//       type: "list",
+//       message: "Please choose the department you'd like to see.",
+//       name: "deptName",
+//       choices: allDept
+//     }
+//   ]
+//   inquirer.prompt(viewByDept)
+//   .then((chosenDept) => {
+//     const employeesInDept = result.rows.forEach(row => row.Department === chosenDept.allDept);
+//     pool.query(getSql, (err, result) => {
+//       const table = new Table({
+//         head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager Name']
+//       });
+//       if (err) {
+//         console.error('Having this issue: ', err);
+//       } else {
+//         result.rows.forEach(row => {
+//           const managerName = row['Manager Name'] ? row['Manager Name'] : '';
+//           table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
+//         });
+//         console.log(table.toString());
+//       }
+//     });
+//   });
+// };
+
+function deptEmployees() {
+  const getDeptSql = `SELECT department.dept_name AS "Department", 
+  id AS "Department ID" 
+  FROM department 
+  ORDER BY department.dept_name`;
+  const getEmplSql = `SELECT employee.id AS "Employee ID", 
+  employee.first_name AS "First Name", 
+  employee.last_name AS "Last Name", 
+  department.dept_name AS "Department", 
+  role.title AS "Title", 
+  role.salary AS "Salary", 
+  CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name" 
+  FROM employee 
+  LEFT JOIN role ON role.id = employee.role_id 
+  LEFT JOIN department ON department.id = role.dept_id 
+  LEFT JOIN employee manager ON manager.id = employee.manager_id 
+  ORDER BY department.dept_name ASC, employee.last_name ASC`;
+
+  pool.query(getDeptSql, (err, deptResult) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    const allDept = deptResult.rows.map(row => row.Department);
+    const viewByDept = [
+      {
+        type: "list",
+        message: "Please choose the department you'd like to see.",
+        name: "deptName",
+        choices: allDept
+      }
+    ];
+    pool.query(getEmplSql, (err, emplResult) => {
+      if (err) {
+        console.error('Having this issue: ', err);
+        return;
+      }
+      inquirer.prompt(viewByDept)
+        .then((chosenDept) => {
+          const employeesInDept = emplResult.rows.filter(row => row.Department === chosenDept.deptName);
+          const table = new Table({
+            head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager Name']
+          });
+          employeesInDept.forEach(row => {
+            const managerName = row['Manager Name'] ? row['Manager Name'] : '';
+            table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
+          });
+          console.log(table.toString());
+        });
+      });
+  });
+};
+
 function addDepartment() {
   const addDept = [
     {
@@ -136,9 +231,6 @@ function addRole() {
     ];
     inquirer.prompt(addRole)
     .then((newRole) => {
-      console.log(result.rows)
-      console.log(result.rows.find(row => row.Department))
-      console.log(newRole.roleDept)
       const chosenDept = result.rows.find(row => row.Department === newRole.roleDept);
       const editSql = `INSERT INTO role (title, salary, dept_id) VALUES ('${newRole.roleName}', ${newRole.roleSalary}, ${chosenDept.id})`;
       pool.query(editSql, (err) => {
@@ -279,7 +371,7 @@ function updateEmployee() {
         .then((chosenEmployee) => {
           const chosenEmployeeId = parseInt(chosenEmployee.thePerson.split(' ')[1]);
           const employeeToEdit = result.rows.find(row => row.ID === chosenEmployeeId);
-          
+
           if (employeeToEdit) {
             const editOptions = {
               Last: "last_name",
@@ -310,4 +402,4 @@ function updateEmployee() {
     });
   };
 
-module.exports = { departments, roles, employees, addDepartment, addRole, addEmployee, updateEmployee }
+module.exports = { departments, roles, employees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee }

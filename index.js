@@ -1,12 +1,12 @@
 const inquirer = require("inquirer");
-const { departments, roles, employees, addDepartment, addRole, addEmployee, updateEmployee } = require('./assets/db-functions');
+const { departments, roles, employees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee } = require('./assets/db-functions');
 
 const userPrompt = [
   {
     type: "list",
     message: '\nPlease choose from the following to access and edit the database.',
     name: "userChoice",
-    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Update an employee role"]
+    choices: ["View all departments", "View all roles", "View all employees", "View all employees in specified department", "Add a department", "Add a role", "Add an employee", "Update an employee role"]
   }
 ];
 
@@ -22,6 +22,9 @@ function init() {
         break;
       case "View all employees":
         employees();
+        break;
+      case "View all employees in specified department":
+        deptEmployees();
         break;
       case "Add a department":
         addDepartment();
