@@ -85,47 +85,55 @@ ORDER BY department.dept_name ASC, employee.last_name ASC`;
   });
 };
 
-// function deptEmployees() {
-//   const getSql = `SELECT employee.id AS "Employee ID", 
-// employee.first_name AS "First Name", 
-// employee.last_name AS "Last Name", 
-// department.dept_name AS "Department", 
-// role.title AS "Title", 
-// role.salary AS "Salary", 
-// CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name" 
-// FROM employee 
-// LEFT JOIN role ON role.id = employee.role_id 
-// LEFT JOIN department ON department.id = role.dept_id 
-// LEFT JOIN employee manager ON manager.id = employee.manager_id 
-// ORDER BY department.dept_name ASC, employee.last_name ASC`;
-// const allDept = result.rows.map(row => row.Department);
-//   const viewByDept = [
-//     {
-//       type: "list",
-//       message: "Please choose the department you'd like to see.",
-//       name: "deptName",
-//       choices: allDept
-//     }
-//   ]
-//   inquirer.prompt(viewByDept)
-//   .then((chosenDept) => {
-//     const employeesInDept = result.rows.forEach(row => row.Department === chosenDept.allDept);
-//     pool.query(getSql, (err, result) => {
-//       const table = new Table({
-//         head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary', 'Manager Name']
-//       });
-//       if (err) {
-//         console.error('Having this issue: ', err);
-//       } else {
-//         result.rows.forEach(row => {
-//           const managerName = row['Manager Name'] ? row['Manager Name'] : '';
-//           table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
-//         });
-//         console.log(table.toString());
-//       }
-//     });
-//   });
-// };
+function managerEmployees() {
+  const getManagerSql = `SELECT employee.id AS "Manager ID",
+CONCAT(employee.first_name, ' ', employee.last_name) AS "Manager Name"
+FROM employee
+WHERE employee.id IN (SELECT DISTINCT manager_id FROM employee)`;
+  pool.query(getManagerSql, (err, managerResult) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    const managers = managerResult.rows.map(row => ({ name: row['Manager Name'], value: row['Manager ID'] }));
+    const selectManager = [
+      {
+        type: "list",
+        message: "Please choose a manager to see their employees.",
+        name: "managerId",
+        choices: managers
+      }
+    ];
+    inquirer.prompt(selectManager)
+      .then((chosenManager) => {
+        const employeesByManager = chosenManager.managerId;
+        const getEmplSql = `SELECT employee.id AS "Employee ID", 
+        employee.first_name AS "First Name", 
+        employee.last_name AS "Last Name", 
+        department.dept_name AS "Department", 
+        role.title AS "Title", 
+        role.salary AS "Salary"
+        FROM employee 
+        LEFT JOIN role ON role.id = employee.role_id 
+        LEFT JOIN department ON department.id = role.dept_id 
+        WHERE employee.manager_id = $1
+        ORDER BY employee.last_name ASC`;  
+          pool.query(getEmplSql, [employeesByManager], (err, emplResult) => {
+            if (err) {
+              console.error('Having this issue: ', err);
+              return;
+            }
+            const table = new Table({
+              head: ['Employee ID', 'First Name', 'Last Name', 'Department', 'Title', 'Salary']
+            });
+            emplResult.rows.forEach(row => {
+              table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary']]);
+            });
+            console.log(table.toString());
+          });
+      });
+  });
+};
 
 function deptEmployees() {
   const getDeptSql = `SELECT department.dept_name AS "Department", 
@@ -402,4 +410,4 @@ function updateEmployee() {
     });
   };
 
-module.exports = { departments, roles, employees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee }
+module.exports = { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee }
