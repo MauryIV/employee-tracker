@@ -1,12 +1,12 @@
 const inquirer = require("inquirer");
-const { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee, deleteDepartment, deleteRole, deleteEmployee } = require('./assets/db-functions');
+const { departments, deleteDepartment, roles, deleteRole, employees, deleteEmployee, managerEmployees, deptEmployees, departmentSalaryTotal, addDepartment, addRole, addEmployee, updateEmployee } = require('./assets/db-functions');
 
 const userPrompt = [
   {
     type: "list",
     message: '\nPlease choose from the following to access and edit the database.',
     name: "userChoice",
-    choices: ["View all departments", "View all roles", "View all employees", "View all employees under specified manager", "View all employees in specified department", "Add a department", "Add a role", "Add an employee", "Update an employee role", "Delete a department", "Delete a role", "Delete an employee"]
+    choices: ["View all departments", "View all roles", "View all employees", "View all employees under specified manager", "View all employees in specified department", "View the salary total in a department", "Add a department", "Add a role", "Add an employee", "Update an employee role", "Delete a department", "Delete a role", "Delete an employee"]
   }
 ];
 
@@ -28,6 +28,9 @@ function init() {
         break;
       case "View all employees in specified department":
         deptEmployees();
+        break;
+      case "View the salary total in a department":
+        departmentSalaryTotal();
         break;
       case "Add a department":
         addDepartment();
@@ -53,6 +56,7 @@ function init() {
       default:
         console.log('Somehow you chose something not on the list. Please try again');
     }
+    init();
   });
 };
 

@@ -33,6 +33,25 @@ ORDER BY department.dept_name`;
   });
 };
 
+function deleteDepartment() {
+  departments();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of what department you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM department WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting department:', err);
+        return;
+      }
+      console.log('Department deleted successfully.');
+    });
+  });
+};
+
 function roles() {
   const getSql = `SELECT role.title AS "Title", 
 role.id AS "Title ID", 
@@ -54,6 +73,25 @@ ORDER BY department.dept_name ASC, role.title ASC`;
       });
       console.log(table.toString());
     }
+  });
+};
+
+function deleteRole() {
+  roles();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of the role you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM role WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting role:', err);
+        return;
+      }
+      console.log('Role deleted successfully.');
+    });
   });
 };
 
@@ -84,6 +122,25 @@ ORDER BY department.dept_name ASC, employee.last_name ASC`;
       });
       console.log(table.toString());
     }
+  });
+};
+
+function deleteEmployee() {
+  employees();
+  inquirer.prompt({
+    type: "input",
+    message: "Please enter an ID number of the employee you would like to delete.",
+    name: "deleteId"
+  })
+  .then((userResponse) => {
+    const deleteSql = `DELETE FROM employee WHERE id = $1`;
+    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
+      if (err) {
+        console.error('Error deleting employee:', err);
+        return;
+      }
+      console.log('Employee deleted successfully.');
+    });
   });
 };
 
@@ -186,9 +243,60 @@ function deptEmployees() {
             const managerName = row['Manager Name'] ? row['Manager Name'] : '';
             table.push([row['Employee ID'], row['First Name'], row['Last Name'], row['Department'], row['Title'], row['Salary'], managerName]);
           });
-          console.log(table.toString());
+          console.log(table.toString());;
         });
       });
+  });
+};
+
+function departmentSalaryTotal() {
+  const getDeptSql = `SELECT department.dept_name AS "Department", 
+id AS "Department ID" 
+FROM department 
+ORDER BY department.dept_name`;
+  const getEmplSql = `SELECT employee.id AS "Employee ID", 
+employee.first_name AS "First Name", 
+employee.last_name AS "Last Name", 
+department.dept_name AS "Department", 
+role.title AS "Title", 
+role.salary AS "Salary", 
+CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager Name" 
+FROM employee 
+LEFT JOIN role ON role.id = employee.role_id 
+LEFT JOIN department ON department.id = role.dept_id 
+LEFT JOIN employee manager ON manager.id = employee.manager_id 
+ORDER BY department.dept_name ASC, employee.last_name ASC`;
+  
+  pool.query(getDeptSql, (err, deptResult) => {
+    if (err) {
+      console.error('Having this issue: ', err);
+      return;
+    }
+    const allDept = deptResult.rows.map(row => row.Department);
+    const viewByDept = [
+      {
+        type: "list",
+        message: "Please choose the department you'd like to see.",
+        name: "deptName",
+        choices: allDept
+      }
+    ];
+    pool.query(getEmplSql, (err, emplResult) => {
+      if (err) {
+        console.error('Having this issue: ', err);
+        return;
+      }
+      inquirer.prompt(viewByDept)
+      .then((chosenDept) => {
+        console.log('')
+        const employeesInDept = emplResult.rows.filter(row => row.Department === chosenDept.deptName);
+        let total = 0;
+        employeesInDept.forEach((employee) => {
+          total += parseInt(employee.Salary);
+        });
+        console.log('Total amount of money spent on employee salaries in this department is: ', total)
+      });
+    });
   });
 };
 
@@ -415,61 +523,4 @@ function updateEmployee() {
   });
 };
 
-function deleteDepartment() {
-  departments();
-  inquirer.prompt({
-    type: "input",
-    message: "Please enter an ID number of what department you would like to delete.",
-    name: "deleteId"
-  })
-  .then((userResponse) => {
-    const deleteSql = `DELETE FROM department WHERE id = $1`;
-    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
-      if (err) {
-        console.error('Error deleting department:', err);
-        return;
-      }
-      console.log('Department deleted successfully.');
-    });
-  });
-};
-
-function deleteRole() {
-  roles();
-  inquirer.prompt({
-    type: "input",
-    message: "Please enter an ID number of the role you would like to delete.",
-    name: "deleteId"
-  })
-  .then((userResponse) => {
-    const deleteSql = `DELETE FROM role WHERE id = $1`;
-    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
-      if (err) {
-        console.error('Error deleting role:', err);
-        return;
-      }
-      console.log('Role deleted successfully.');
-    });
-  });
-};
-
-function deleteEmployee() {
-  employees();
-  inquirer.prompt({
-    type: "input",
-    message: "Please enter an ID number of the employee you would like to delete.",
-    name: "deleteId"
-  })
-  .then((userResponse) => {
-    const deleteSql = `DELETE FROM employee WHERE id = $1`;
-    pool.query(deleteSql, [userResponse.deleteId], (err, result) => {
-      if (err) {
-        console.error('Error deleting employee:', err);
-        return;
-      }
-      console.log('Employee deleted successfully.');
-    });
-  });
-};
-
-module.exports = { departments, roles, employees, managerEmployees, deptEmployees, addDepartment, addRole, addEmployee, updateEmployee, deleteDepartment, deleteRole, deleteEmployee }
+module.exports = { departments, deleteDepartment, roles, deleteRole, employees, deleteEmployee, managerEmployees, deptEmployees, departmentSalaryTotal, addDepartment, addRole, addEmployee, updateEmployee }
