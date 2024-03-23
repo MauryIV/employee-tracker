@@ -212,8 +212,7 @@ FROM employee ORDER BY last_name`;
       return;
     }
     result.rows.map(row => row.Title);
-    const allEmployees = result.rows.map(row => `${row.ID}: ${row["Last"]}, ${row["First"]}`)
-
+    const allEmployees = result.rows.map(row => `${row.ID}: ${row.Last}, ${row.First}`)
     const addManager = [
       {
         type: "list",
@@ -238,7 +237,77 @@ FROM employee ORDER BY last_name`;
 };
 
 function updateEmployee() {
-
-};
+  const getSql = `SELECT employee.id AS "ID", 
+  employee.first_name AS "First", 
+  employee.last_name AS "Last", 
+  department.dept_name AS "Department", 
+  role.title AS "Title", 
+  role.salary AS "Salary", 
+  CONCAT(manager.first_name, ' ', manager.last_name) AS "Manager" 
+  FROM employee 
+  LEFT JOIN role ON role.id = employee.role_id 
+  LEFT JOIN department ON department.id = role.dept_id 
+  LEFT JOIN employee manager ON manager.id = employee.manager_id 
+  ORDER BY employee.last_name ASC`;
+  pool.query(getSql, (err, result) => {
+    const table = new Table({
+    head: ['ID', 'Last', 'First', 'Department', 'Title', 'Salary', 'Manager']
+    });
+    if (err) {
+      console.error('Having this issue: ', err);
+    } else {
+      result.rows.forEach(row => {
+        const managerName = row['Manager'] ? row['Manager'] : '';
+        table.push([row['ID'], row['Last'], row['First'], row['Department'], row['Title'], row['Salary'], managerName]);
+      });
+      const everyone = result.rows.map(row => (`ID ${row.ID}: ${row.Last}, ${row.First} - ${row.Title} in ${row.Department}, ${row.Salary}/annually - ManagerID ${row.Manager}`));
+      const editPerson = [
+        {
+          type: "list",
+          message: "Please choose the employee whose information you would like to edit.",
+          name: "thePerson",
+          choices: everyone
+        },
+        {
+          type: "list",
+          message: "What would you like to edit?",
+          name: "value",
+          choices:  ["Last", "First", "Title", "Manager"]
+        }
+        ]
+        inquirer.prompt(editPerson)
+        .then((chosenEmployee) => {
+          const chosenEmployeeId = parseInt(chosenEmployee.thePerson.split(' ')[1]);
+          const employeeToEdit = result.rows.find(row => row.ID === chosenEmployeeId);
+          
+          if (employeeToEdit) {
+            const editOptions = {
+              Last: "last_name",
+              First: "first_name",
+              Title: "role_id",
+              Manager: "manager_id"
+            };
+            inquirer.prompt({
+              type: "input",
+              message: `Enter new ${editOptions[chosenEmployee.value]}:`,
+              name: "updatedInfo"
+            })
+            .then((userResponse) => {
+              updateSql = `UPDATE employee SET ${editOptions[chosenEmployee.value]} = '${userResponse.updatedInfo}' WHERE id = ${employeeToEdit.ID}`;
+              pool.query(updateSql, (err, updateResult) => {
+                if (err) {
+                  console.error('Having this issue: ', err);
+                } else {
+                  console.log('Employee updated successfully!');
+                }
+              });
+            });
+          } else {
+            console.log('Employee not found');
+          }
+        });
+      }
+    });
+  };
 
 module.exports = { departments, roles, employees, addDepartment, addRole, addEmployee, updateEmployee }
