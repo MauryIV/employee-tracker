@@ -35,7 +35,7 @@ This application is good for storing department, role and employee information i
 
 <a id="Visuals"></a>
 ## Visuals
-NA
+[Video Walkthrough Link](https://drive.google.com/file/d/1i5T6dEj6ZtDWC4sA8z--Oxc1VYJkC0pn/view)
 
 <a id="tests"></a>
 ## Tests
